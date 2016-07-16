@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"key-value-storage-for-go-training/storage"
+	"key-value-storage-for-go-training/server"
 )
 
 func main() {
@@ -17,4 +18,8 @@ func main() {
 	fmt.Printf("Getting key '%s', received '%s'\n", key, val)
 	ok := s.Delete(key)
 	fmt.Printf("Deleting key '%s', found: %s'\n", key, ok)
+
+	fmt.Println("Init tcp server")
+	srv := server.Cli{"localhost", "11200"}
+	srv.Start()
 }
