@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"regexp"
 )
 
 const (
@@ -37,13 +38,23 @@ func (c Cli) Start() {
 
 func handleCli(conn net.Conn) {
 	defer conn.Close()
+	rSet, _ := regexp.Compile("^SET 4:([0-9\\p{L}]+) 5:([0-9\\p{L}]+)$")
+	rGet, _ := regexp.Compile("^GET 4:([0-9\\p{L}]+)$")
+	rDel, _ := regexp.Compile("^DEL 4:([0-9\\p{L}]+)$")
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
 		conn.Write([]byte("Ok\n"))
-		if line == "exit" {
-			break
+		switch {
+		case rSet.MatchString(line):
+			fmt.Println("Setting:", line)
+		case rGet.MatchString(line):
+			fmt.Println("Getting:", line)
+		case rDel.MatchString(line):
+			fmt.Println(line, "Deleting:", line)
+		case line == "exit":
+			return
 		}
 	}
 }
