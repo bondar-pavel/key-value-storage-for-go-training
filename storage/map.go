@@ -4,6 +4,13 @@ import (
 	"sync"
 )
 
+type SetGetDeleter interface {
+	Set(string, string)
+	Get(string) (string, bool)
+	Del(string) (bool)
+}
+
+
 type Storage struct {
 	Map map[string]string
 	Mutex *sync.Mutex
@@ -27,7 +34,7 @@ func (s *Storage) Get(key string) (string, bool) {
 	return value, ok
 }
 
-func (s *Storage) Delete(key string) (deleted bool) {
+func (s *Storage) Del(key string) (deleted bool) {
 	s.Mutex.Lock()
 	_, exists := s.Map[key]
 	if exists == true {

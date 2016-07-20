@@ -16,7 +16,7 @@ func main() {
 	s.Set(key, value)
 	val, _ := s.Get(key)
 	fmt.Printf("Getting key '%s', received '%s'\n", key, val)
-	ok := s.Delete(key)
+	ok := s.Del(key)
 	fmt.Printf("Deleting key '%s', found: %s'\n", key, ok)
 
 	fmt.Println("Init tcp server")
