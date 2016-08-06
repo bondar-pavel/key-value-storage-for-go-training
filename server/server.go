@@ -41,35 +41,38 @@ func (c Cli) Start() {
 	}
 }
 
-func handleCli(conn net.Conn, s storage.SetGetDeleter) {
+func handleCli(conn net.Conn, s storage.Querier) {
 	defer conn.Close()
-	rSet, _ := regexp.Compile("^SET 4:([0-9\\p{L}]+) 5:([0-9\\p{L}]+)$")
-	rGet, _ := regexp.Compile("^GET 4:([0-9\\p{L}]+)$")
-	rDel, _ := regexp.Compile("^DEL 4:([0-9\\p{L}]+)$")
+	rSet, _ := regexp.Compile("^SET 4:([0-9\\s\\p{L}]+) 5:([0-9\\s\\p{L}]+)$")
+	rGet, _ := regexp.Compile("^GET 4:([0-9\\s\\p{L}]+)$")
+	rDel, _ := regexp.Compile("^DEL 4:([0-9\\s\\p{L}]+)$")
+
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
-		conn.Write([]byte("Ok\n"))
-		switch {
-		case rSet.MatchString(line):
+		cmd := storage.Command{}
+		if rSet.MatchString(line) {
 			args := rSet.FindStringSubmatch(line)
-			s.Set(args[1], args[2])
-			fmt.Println("Setting:", args[1], args[2])
-		case rGet.MatchString(line):
+			cmd.Key, cmd.Value = args[1], args[2]
+			s.Query("set", cmd)
+			fmt.Println("Setting:", cmd)
+		} else if rGet.MatchString(line) {
 			args := rGet.FindStringSubmatch(line)
-			val, ok := s.Get(args[1])
-			fmt.Println("Getting:", args[1])
+			cmd.Key = args[1]
+			data := s.Query("get", cmd)
+			fmt.Println("Getting:", cmd.Key)
 			msg := "0: (absent)\n"
-			if ok {
-				msg = fmt.Sprintf("5:%s (present)\n", val)
+			if data.Exists {
+				msg = fmt.Sprintf("5:%s (present)\n", data.Value)
 			}
 			conn.Write([]byte(msg))
-		case rDel.MatchString(line):
+		} else if rDel.MatchString(line) {
 			args := rDel.FindStringSubmatch(line)
-			ok := s.Del(args[1])
-			fmt.Println(line, "Deleting:", args[1], ok)
-		case line == "exit":
+			cmd.Key = args[1]
+			data := s.Query("del", cmd)
+			fmt.Println(line, "Deleting:", data.Key, data.Exists)
+		} else if line == "exit" {
 			return
 		}
 	}
