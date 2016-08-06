@@ -20,7 +20,9 @@ type Storage struct {
 
 func (s *Storage) Init() {
 	s.Map = make(map[string]string)
-        s.Chan = make(chan *Command)
+	// All SET commands are non-blocking, since does not require any reply,
+	// so use buffered channels
+        s.Chan = make(chan *Command, 10)
 	go s.process()
 }
 
