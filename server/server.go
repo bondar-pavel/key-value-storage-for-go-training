@@ -56,12 +56,10 @@ func handleCli(conn net.Conn, s storage.Querier) {
 			args := rSet.FindStringSubmatch(line)
 			cmd.Key, cmd.Value = args[1], args[2]
 			s.Query("set", cmd)
-			fmt.Println("Setting:", cmd)
 		} else if rGet.MatchString(line) {
 			args := rGet.FindStringSubmatch(line)
 			cmd.Key = args[1]
 			data := s.Query("get", cmd)
-			fmt.Println("Getting:", cmd.Key)
 			msg := "0: (absent)\n"
 			if data.Exists {
 				msg = fmt.Sprintf("5:%s (present)\n", data.Value)
@@ -71,7 +69,11 @@ func handleCli(conn net.Conn, s storage.Querier) {
 			args := rDel.FindStringSubmatch(line)
 			cmd.Key = args[1]
 			data := s.Query("del", cmd)
-			fmt.Println(line, "Deleting:", data.Key, data.Exists)
+			msg := "0: (absent)\n"
+			if data.Exists {
+				msg = "1: (deleted)\n"
+			}
+			conn.Write([]byte(msg))
 		} else if line == "exit" {
 			return
 		}

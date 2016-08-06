@@ -23,4 +23,12 @@ The state either ignored or absent. A key should be ignored if it does not exist
 >
 > GET 4:key3 
 > 0: (absent)
+>
+> // Added by Pavel
+> DEL 4:key1
+> 1: (deleted)
+>
+> DEL 4:key3
+> 0: (absent)
+
 ```
