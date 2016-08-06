@@ -15,12 +15,12 @@ type Command struct {
 
 type Storage struct {
 	Map map[string]string
-	Chan chan Command
+	Chan chan *Command
 }
 
 func (s *Storage) Init() {
 	s.Map = make(map[string]string)
-        s.Chan = make(chan Command)
+        s.Chan = make(chan *Command)
 	go s.process()
 }
 
@@ -48,10 +48,10 @@ func (s *Storage) process() {
                         s.set(command.Key, command.Value)
                 } else if command.Cmd == "get" {
                         command.Value, command.Exists = s.get(command.Key)
-                        command.ReplyChan <- command
+                        command.ReplyChan <- *command
                 } else if command.Cmd == "del" {
                         command.Exists = s.del(command.Key)
-                        command.ReplyChan <- command
+                        command.ReplyChan <- *command
                 }
         }
 }
@@ -61,7 +61,7 @@ func (s *Storage) Query(action string, cmd Command) Command {
 	if action != "set" {
 		cmd.ReplyChan = make(chan Command, 1)
 	}
-	s.Chan <- cmd
+	s.Chan <- &cmd
 	if action != "set" {
 		cmd = <-cmd.ReplyChan
 	}
