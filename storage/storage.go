@@ -1,20 +1,19 @@
 package storage
 
-
 type Querier interface {
 	Query(string, Command) Command
 }
 
 type Command struct {
-        Cmd string
-        Key string
-        Value string
-        Exists bool
-        ReplyChan chan Command
+	Cmd       string
+	Key       string
+	Value     string
+	Exists    bool
+	ReplyChan chan Command
 }
 
 type Storage struct {
-	Map map[string]string
+	Map  map[string]string
 	Chan chan *Command
 }
 
@@ -22,7 +21,7 @@ func (s *Storage) Init() {
 	s.Map = make(map[string]string)
 	// All SET commands are non-blocking, since does not require any reply,
 	// so use buffered channels
-        s.Chan = make(chan *Command, 10)
+	s.Chan = make(chan *Command, 10)
 	go s.process()
 }
 
@@ -45,17 +44,17 @@ func (s *Storage) del(key string) (deleted bool) {
 }
 
 func (s *Storage) process() {
-        for command :=  range s.Chan {
-                if command.Cmd == "set" {
-                        s.set(command.Key, command.Value)
-                } else if command.Cmd == "get" {
-                        command.Value, command.Exists = s.get(command.Key)
-                        command.ReplyChan <- *command
-                } else if command.Cmd == "del" {
-                        command.Exists = s.del(command.Key)
-                        command.ReplyChan <- *command
-                }
-        }
+	for command := range s.Chan {
+		if command.Cmd == "set" {
+			s.set(command.Key, command.Value)
+		} else if command.Cmd == "get" {
+			command.Value, command.Exists = s.get(command.Key)
+			command.ReplyChan <- *command
+		} else if command.Cmd == "del" {
+			command.Exists = s.del(command.Key)
+			command.ReplyChan <- *command
+		}
+	}
 }
 
 func (s *Storage) Query(action string, cmd Command) Command {
@@ -69,4 +68,3 @@ func (s *Storage) Query(action string, cmd Command) Command {
 	}
 	return cmd
 }
-
