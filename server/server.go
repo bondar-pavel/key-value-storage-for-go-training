@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"io"
 	"os"
 	"regexp"
 
@@ -41,7 +42,7 @@ func (c Cli) Start() {
 	}
 }
 
-func handleCli(conn net.Conn, s storage.Querier) {
+func handleCli(conn io.ReadWriteCloser, s storage.Querier) {
 	defer conn.Close()
 	rSet, _ := regexp.Compile("^SET 4:([0-9\\s\\p{L}]+) 5:([0-9\\s\\p{L}]+)$")
 	rGet, _ := regexp.Compile("^GET 4:([0-9\\s\\p{L}]+)$")
